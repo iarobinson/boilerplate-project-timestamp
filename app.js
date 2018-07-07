@@ -12,31 +12,25 @@ app.use(cors());
 
 // functionality goes here
 app.get("/api/timestamp/:date_string?", function(req, res, next) {
+  var now = moment();
+  var displayUnix, displayUtc;
+  var userDate = req.params.userDate;
+  var userDateData = moment(userDate);
+  var validInput = moment(userDateData, moment.ISO_8601, true).isValid();
   
-  // Receives data from user if user specifices
-  let userInput = req.params.date_string;
-  console.log(isNaN(userInput));
-  // Formats the UTC feedback
-  let dateFormat = {
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  };
-  
-  // Asks is the user input is a 
-  if (isNaN(userInput)) {
-    var naturalDate = new Date(userInput);
-    naturalDate = naturalDate.toLocaleDateString("en-us", dateFormat);
-    var unixDate = new Date(userInput).getTime() / 1000
-  } else {
-    var unixDate = userInput;
-    var naturalDate = new Date(userInput * 1000);
-    naturalDate = naturalDate.toLocaleDateString("en-us", dateFormat);
+  if (userDate === undefined) { // Return current time and date when user doesn't specify
+    displayUnix = now.format('x');
+    displayUtc = now.format('ddd, DD MMM YYYY hh:mm:ss');
+  } else if (validInput) { // Return user submission time and date
+    displayUnix = userDateData.format('x');
+    displayUtc = userDateData.format('ddd, DD MMM YYYY hh:mm:ss');
+  } else { // Show error for misunderstood user input
+    res.json({ 'error': 'invalid date' });
   }
   
   res.json({
-    unix: unixDate,
-    natural: naturalDate
+    unix: displayUnix,
+    utc: displayUtc
   });
 });
 
